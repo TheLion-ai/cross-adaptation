@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "cross-adaptation"
+version = "0.1.0"
+description = ""
+authors = ["a-huli <klaudel.b@gmail.com>"]
+readme = "README.md"
+packages = [{include = "cross_adaptation"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,16 @@
+da_method: KLIEP
+classifier: XGBClassifier
+random_state: 42
+train_data: [
+  Brazil-1.csv,
+  Brazil-2.csv,
+  Italy-1.csv,
+  Italy-2.csv,
+  Italy-3.csv,
+  Poland.csv,
+]
+test_data: [
+  Spain.csv,
+  Italy-3.csv,
+  Ethiopia.csv,
+]
