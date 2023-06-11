@@ -1,4 +1,0 @@
-name: optuna
-best_params:
-  classifier.classifier.learning_rate: 0.01
-best_value: 6.0
