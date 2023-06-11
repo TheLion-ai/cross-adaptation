@@ -1,0 +1,11 @@
+- classifier.learning_rate=0.05
+- classifier.gamma=0.3
+- classifier.max_depth=4
+- classifier.min_child_weight=8
+- classifier.max_delta_step=0
+- classifier.subsample=0.8
+- classifier.colsample_bytree=0.8
+- classifier.lambda=0.2
+- classifier.tree_method=auto
+- classifier.grow_policy=depthwise
+- classifier.max_leaves=2

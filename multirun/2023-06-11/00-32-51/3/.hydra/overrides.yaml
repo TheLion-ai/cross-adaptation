@@ -1,0 +1,14 @@
+- classifier.learning_rate=0.0005
+- classifier.gamma=0.5
+- classifier.max_depth=6
+- classifier.min_child_weight=4
+- classifier.max_delta_step=6
+- classifier.subsample=0.9
+- classifier.colsample_bytree=0.6
+- classifier.lambda=0.4
+- classifier.tree_method=exact
+- classifier.grow_policy=depthwise
+- classifier.max_leaves=3
+- adapt_model.pretrain=False
+- adapt_model.C=50
+- adapt_model.optimizer=sgd

@@ -1,0 +1,27 @@
+classifier:
+  _target_: xgboost.XGBClassifier
+  learning_rate: 0.01
+  gamma: 0.3
+  max_depth: 6
+  min_child_weight: 6
+  max_delta_step: 3
+  subsample: 0.7
+  colsample_bytree: 0.8
+  lambda: 0.4
+  tree_method: hist
+  grow_policy: lossguide
+  max_leaves: 7
+optimized_metric: accuracy
+da_method:
+  _target_: adapt.instance_based.KLIEP
+random_state: 42
+train_data:
+- Brazil-1.csv
+- Brazil-2.csv
+- Italy-1.csv
+- Italy-2.csv
+- Italy-3.csv
+- Poland.csv
+test_data:
+- Spain.csv
+- Italy-3.csv

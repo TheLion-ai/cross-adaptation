@@ -1,0 +1,12 @@
+- classifier.learning_rate=0.1
+- classifier.gamma=0.1
+- classifier.max_depth=4
+- classifier.min_child_weight=4
+- classifier.max_delta_step=1
+- classifier.subsample=1.0
+- classifier.sampling_method=uniform
+- classifier.colsample_bytree=0.6
+- classifier.lambda=0.5
+- classifier.tree_method=auto
+- classifier.grow_policy=lossguide
+- classifier.max_leaves=7

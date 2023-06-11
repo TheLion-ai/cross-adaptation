@@ -1,0 +1,20 @@
+name: optuna
+best_params:
+  classifier.learning_rate: 0.001
+  classifier.gamma: 0.4
+  classifier.max_depth: 6
+  classifier.min_child_weight: 7
+  classifier.max_delta_step: 0
+  classifier.subsample: 0.6
+  classifier.colsample_bytree: 0.6
+  classifier.lambda: 0.3
+  classifier.tree_method: exact
+  classifier.grow_policy: depthwise
+  classifier.max_leaves: 4
+  adapt_model.kernel: rbf
+  adapt_model.B: 1000
+  adapt_model.eps: 1.0e-08
+  adapt_model.max_size: 2000
+  adapt_model.tol: 1.0e-06
+  adapt_model.max_iter: 4000
+best_value: 0.7459874730867098

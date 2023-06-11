@@ -1,0 +1,14 @@
+- classifier.learning_rate=0.005
+- classifier.gamma=0
+- classifier.max_depth=5
+- classifier.min_child_weight=1
+- classifier.max_delta_step=6
+- classifier.subsample=0.9
+- classifier.colsample_bytree=1.0
+- classifier.lambda=0.2
+- classifier.tree_method=approx
+- classifier.grow_policy=lossguide
+- classifier.max_leaves=6
+- adapt_model.pretrain=True
+- adapt_model.C=5
+- adapt_model.optimizer=rms_prop

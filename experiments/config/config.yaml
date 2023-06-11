@@ -1,16 +1,44 @@
-da_method: KLIEP
-classifier: XGBClassifier
+defaults:
+  - classifier: xgb
+  - adapt_model: kmm
+  - classifier/search_spaces@hydra.sweeper.params: ${classifier}
+  - adapt_model/search_spaces@hydra.sweeper.params: ${adapt_model}
+  - _self_
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: tpe
+hydra:
+  mode: MULTIRUN
+  sweeper:
+    sampler:
+      seed: 42
+    direction: maximize
+    study_name: xgb_mock
+    storage: null
+    n_trials: 10
+    n_jobs: 1
+wandb:
+  project: cross-adaptation
+  entity: thelion-ai
 random_state: 42
-train_data: [
-  Brazil-1.csv,
-  Brazil-2.csv,
-  Italy-1.csv,
-  Italy-2.csv,
-  Italy-3.csv,
-  Poland.csv,
-]
-test_data: [
-  Spain.csv,
-  Italy-3.csv,
-  Ethiopia.csv,
-]
+root_path: ../../../../experiments/data/interim/train
+train_data:
+  {
+    Brazil-1: Brazil-1.csv,
+    Brazil-2: Brazil-2.csv,
+    Italy-1: Italy-1.csv,
+    Italy-2: Italy-2.csv,
+    italy-3: Italy-3.csv,
+    Poland: Poland.csv,
+  }
+test_data: {
+    Spain: Spain.csv,
+    Italy: Italy-3.csv,
+    # Ethiopia.csv,
+}
+metrics:
+  - _target_: sklearn.metrics.accuracy_score
+  - _target_: sklearn.metrics.f1_score
+  - _target_: sklearn.metrics.roc_auc_score
+  - _target_: sklearn.metrics.precision_score
+  - _target_: sklearn.metrics.recall_score
+optimized_metric: f1_score

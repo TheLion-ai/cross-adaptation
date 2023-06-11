@@ -1,0 +1,14 @@
+name: optuna
+best_params:
+  classifier.learning_rate: 0.1
+  classifier.gamma: 0.3
+  classifier.max_depth: 9
+  classifier.min_child_weight: 4
+  classifier.max_delta_step: 2
+  classifier.subsample: 0.6
+  classifier.colsample_bytree: 0.8
+  classifier.lambda: 0.2
+  classifier.tree_method: hist
+  classifier.grow_policy: lossguide
+  classifier.max_leaves: 3
+best_value: 9.0

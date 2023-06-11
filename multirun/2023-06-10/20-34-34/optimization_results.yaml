@@ -1,0 +1,4 @@
+name: optuna
+best_params:
+  +learning_rate: 0.01
+best_value: 9.0

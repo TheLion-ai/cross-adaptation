@@ -1,0 +1,17 @@
+- classifier.learning_rate=0.3
+- classifier.gamma=0.2
+- classifier.max_depth=6
+- classifier.min_child_weight=3
+- classifier.max_delta_step=10
+- classifier.subsample=0.9
+- classifier.colsample_bytree=1.0
+- classifier.lambda=0.1
+- classifier.tree_method=approx
+- classifier.grow_policy=lossguide
+- classifier.max_leaves=9
+- adapt_model.kernel=laplacian
+- adapt_model.B=500
+- adapt_model.eps=1e-05
+- adapt_model.max_size=2500
+- adapt_model.tol=1e-07
+- adapt_model.max_iter=200
