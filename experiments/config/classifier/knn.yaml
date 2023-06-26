@@ -1,0 +1,6 @@
+_target_: sklearn.neighbors.KNeighborsClassifier
+n_neighbors: 2
+algorithm: auto
+leaf_size: 30
+p: 2
+metric: minkowski

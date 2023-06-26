@@ -1,3 +1,2 @@
 adapt_model.pretrain: choice(True, False)
 adapt_model.C: choice(0.1, 0.5, 1, 5, 10, 50, 100)
-# adapt_model.optimizer: choice(adam, rms_prop, sgd)

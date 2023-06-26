@@ -1,0 +1,5 @@
+classifier.n_neighbors: choice(2, 3, 4, 5, 6, 7, 8, 9, 10)
+classifier.algorithm: choice(auto, ball_tree, kd_tree, brute)
+classifier.leaf_size: choice(30, 40, 50, 60, 70, 80, 90, 100)
+classifier.p: choice(1, 2, 3, 4)
+classifier.metric: choice(minkowski, euclidean, manhattan)

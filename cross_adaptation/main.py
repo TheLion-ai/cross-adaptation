@@ -11,8 +11,6 @@ import random
 @hydra.main(version_base='1.1', config_path='../experiments/config', config_name='config')
 def main(cfg):
     """Main function for cross-adaptation experiments"""
-    run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project, config=cfg)
-    # Load data
     train_data = {k: pd.read_csv(f'{cfg.root_path}/{df}') for k, df in cfg.train_data.items()}
     test_data = {k: pd.read_csv(f'{cfg.root_path}/{df}') for k, df in cfg.test_data.items()}
 
@@ -21,36 +19,31 @@ def main(cfg):
     if cfg.adapt_model._target_ == 'adapt.instance_based.WANN':
         adapt_model = hydra.utils.instantiate(cfg.adapt_model, random_state=cfg.random_state)
     else:
-        adapt_model = hydra.utils.instantiate(cfg.adapt_model, estimator=estimator, Xt=np.zeros((4,2)), random_state=cfg.random_state)
+        adapt_model = hydra.utils.instantiate(cfg.adapt_model, estimator=estimator, random_state=cfg.random_state)
     
+    run = wandb.init(entity=cfg.wandb.entity, project=cfg.wandb.project, config=cfg, name=f"{cfg.classifier._target_}_{cfg.adapt_model._target_}_{random.randint(0, 100000)}")
     # Run cross-adaptation
     cross_adaptation = CrossAdaptation(train_data=train_data, estimator=estimator, adapt_model=adapt_model)
     transformed_data = cross_adaptation.adapt()
     for dataset_name, df in transformed_data.items():
         table = wandb.Table(dataframe=df)
-        run.log({f'{dataset_name}_xross_adapted': table})
+        run.log({f'{dataset_name}_cross_adapted': table})
 
     # Test on the adapted data
     metrics = [hydra.utils.instantiate(metric, _partial_=True) for metric in cfg.metrics]
     results = cross_adaptation.test(test_data, metrics=metrics)
     wandb.log(results)
 
-    # TODO: Move testing to a separate function
-    # Test
-    # -> baseline
-    # -> mean
-    # TODO: add subfunction for modelling
-    # TODO: move adapt method to partial
-    # Compare with baseline - no adaptation
     baseline_results = cross_adaptation.calc_baseline(test_data, metrics=metrics)
     wandb.log(baseline_results)
     compare_results = cross_adaptation.compare(results, baseline_results, metrics, test_data)
     wandb.log(compare_results)
-    # Calculate the score for the optimizer
+    # Calculate the score for optuna
     score = dict(filter(lambda item: cfg.optimized_metric in item[0], results.items())).values()
     score = mean(list(score))
     wandb.log({f'{cfg.optimized_metric}_mean_score': score})
     # Return the score for the optimizer
+    wandb.finish()
     return score
 
 main()

@@ -1,6 +1,5 @@
 _target_: adapt.instance_based.WANN
 pretrain: True
 C: 1
-# optimizer: rmsprop
 loss: binary_crossentropy
 verbose: 0
