@@ -17,6 +17,7 @@ hydra-optuna-sweeper = "^1.2.0"
 numpy = "^1.24.3"
 adapt = "0.4.1"
 wandb = "^0.15.4"
+xgboost = "^1.7.6"
 
 
 [build-system]
