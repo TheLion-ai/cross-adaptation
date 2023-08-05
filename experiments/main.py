@@ -1,4 +1,5 @@
 import random
+import os
 from statistics import mean
 
 import hydra
@@ -15,14 +16,21 @@ from cross_adaptation import Adapter
 def main(cfg: DictConfig):
     """Main function for cross-adaptation experiments"""
     train_data = {
-        k: pd.read_csv(f"{cfg.root_path}/{df}") for k, df in cfg.train_data.items()
+        k: pd.concat([
+            pd.read_csv(os.path.join(cfg.root_path, 'train', df), index_col=0),
+            pd.read_csv(os.path.join(cfg.root_path, 'test', df), index_col=0)
+        ], ignore_index=True)
+        for k, df in cfg.train_data.items() 
     }
     test_data = {
-        k: pd.read_csv(f"{cfg.root_path}/{df}") for k, df in cfg.test_data.items()
+        k: pd.read_csv(os.path.join(cfg.root_path, 'test', df), index_col=0) for k, df in cfg.test_data.items()
     }
 
     # Create estimator and adapt_model
-    estimator = hydra.utils.instantiate(cfg.classifier, random_state=cfg.random_state)
+    if cfg.classifier._target_ == "sklearn.neighbors.KNeighborsClassifier":
+        estimator = hydra.utils.instantiate(cfg.classifier)
+    else:
+        estimator = hydra.utils.instantiate(cfg.classifier, random_state=cfg.random_state)
     if cfg.adapt_model._target_ == "adapt.instance_based.WANN":
         adapt_model = hydra.utils.instantiate(
             cfg.adapt_model, random_state=cfg.random_state
@@ -49,7 +57,10 @@ def main(cfg: DictConfig):
 
     # Test on the adapted data
     metrics = [
-        hydra.utils.instantiate(metric, _partial_=True) for metric in cfg.metrics
+        hydra.utils.instantiate(metric, _partial_=True, zero_division=0.0) \
+        if metric['_target_'] not in ['sklearn.metrics.accuracy_score', 'sklearn.metrics.roc_auc_score'] \
+        else hydra.utils.instantiate(metric, _partial_=True) \
+        for metric in cfg.metrics
     ]
     results = adapter.test(test_data, metrics=metrics)
     wandb.log(results)

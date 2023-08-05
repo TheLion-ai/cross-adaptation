@@ -1,6 +1,6 @@
 defaults:
   - classifier: xgb
-  - adapt_model: kmm
+  - adapt_model: kliep
   - classifier/search_spaces@hydra.sweeper.params: ${classifier}
   - adapt_model/search_spaces@hydra.sweeper.params: ${adapt_model}
   - _self_
@@ -14,26 +14,27 @@ hydra:
     direction: maximize
     study_name: cross-adaptation
     storage: null
-    n_trials: 10
+    n_trials: 100
     n_jobs: 1
 wandb:
   project: cross-adaptation
   entity: thelion-ai
 random_state: 42
-root_path: ../../../../experiments/data/interim/train
+root_path: ../../../../experiments/data/processed
 train_data:
   {
     Brazil-1: Brazil-1.csv,
     Brazil-2: Brazil-2.csv,
     Italy-1: Italy-1.csv,
     Italy-2: Italy-2.csv,
-    italy-3: Italy-3.csv,
+    Italy-3: Italy-3.csv,
+    Italy-4: Italy-4.csv,
     Poland: Poland.csv,
+    
   }
 test_data: {
     Spain: Spain.csv,
-    Italy: Italy-3.csv,
-    # Ethiopia.csv,
+    Ethiopia: Ethiopia.csv,
 }
 metrics:
   - _target_: sklearn.metrics.accuracy_score
