@@ -8,30 +8,46 @@ Cross-adaptation performs domain adaptation across a set of domains of all the a
 
 <img width="555" alt="image" src="https://github.com/TheLion-ai/cross-adaptation/assets/12778421/7f1e7fc0-e9cc-4263-af82-97df8b225ec1">
 
+# Usage
+## Installation
+Prerequisites
+* python = "^3.8,<3.11"
+* [Poetry](https://python-poetry.org/docs/)
+
+Install requirements
+```
+poetry install
+```
+## Using cross-adaptation
+```python
+import pandas as pd
+from adapt.instance_based import KMM
+from sklearn.tree import DecisionTreeClassifier
+
+from cross_adaptation import Adapter
+
+data: {
+    "dataset1" : pd.DataFrame(),
+    "dataset2" : pd.DataFrame()
+} # the data to be adapted, each dataframe should have a column called target
+adapt_model = KMM(...) #the method for domain adaptation
+classifier = DecisionTreeClassifier(...) #estimator used for the task
+
+adapter = Adapter(
+    data,
+    adapt_model,
+    classifier
+)
+
+adapted_dataset = adapter.adapt()
+
+```
+## Running experiments
+
+* adjust config in `experiments/config`
+* run `experiments/main.py`
+  ```bash
+    poetry run experiments/main.py
+  ```
 
 
-
-Project Organization
---------------------
-
-    .
-    ├── AUTHORS.md
-    ├── LICENSE
-    ├── README.md
-    ├── bin
-    ├── config
-    ├── data
-    │   ├── external
-    │   ├── interim
-    │   ├── processed
-    │   └── raw
-    ├── docs
-    ├── notebooks
-    ├── reports
-    │   └── figures
-    └── src
-        ├── data
-        ├── external
-        ├── models
-        ├── tools
-        └── visualization
