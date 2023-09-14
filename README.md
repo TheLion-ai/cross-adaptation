@@ -6,7 +6,7 @@ Cross-adaptation performs domain adaptation across a set of domains of all the a
 
 ## Algorithm
 
-<img width="555" alt="image" src="https://github.com/TheLion-ai/cross-adaptation/assets/12778421/7f1e7fc0-e9cc-4263-af82-97df8b225ec1">
+<img width="555" alt="image" src="docs/alg.png">
 
 # Usage
 ## Installation
