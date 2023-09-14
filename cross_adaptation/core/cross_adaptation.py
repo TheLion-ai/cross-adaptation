@@ -13,11 +13,11 @@ class Adapter:
         adapt_model: object,
         estimator: object,
         scaler: Optional[StandardScaler] = None,
-    ) -> List[pd.DataFrame]:
+    ) -> None:
         """Cross-adaptation method for domain adaptation
 
         Args:
-            train_data (List[pd.DataFrame]): the data to be adapted, each dataframe should have a column called target
+            train_data (Dict[str, pd.DataFrame]): the data to be adapted, each dataframe should have a column called target
             adapt_model (object): the method for domain adaptation
             estimator (object): estimator used for the task
             scaler (Optional[StandardScaler], optional): Scaler used for scaling the data. Defaults to None.
