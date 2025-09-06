@@ -1,0 +1,5 @@
+_target_: adapt.instance_based.WANN
+pretrain: True
+C: 1
+loss: binary_crossentropy
+verbose: 0

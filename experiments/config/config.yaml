@@ -1,40 +1,35 @@
 defaults:
-  - classifier: xgb
-  - adapt_model: kliep
-  - classifier/search_spaces@hydra.sweeper.params: ${classifier}
-  - adapt_model/search_spaces@hydra.sweeper.params: ${adapt_model}
   - _self_
-  - override hydra/sweeper: optuna
-  - override hydra/sweeper/sampler: tpe
-hydra:
-  mode: MULTIRUN
-  sweeper:
-    sampler:
-      seed: 42
-    direction: maximize
-    study_name: cross-adaptation
-    storage: null
-    n_trials: 100
-    n_jobs: 1
+  # - classifier: xgb
+  # - adapt_model: kliep
+  # - classifier/search_spaces@hydra.sweeper.params: ${classifier}
+  # - adapt_model/search_spaces@hydra.sweeper.params: ${adapt_model}
+  # - override hydra/sweeper: optuna
+  # - override hydra/sweeper/sampler: tpe
+# hydra:
+#   mode: MULTIRUN
+#   sweeper:
+#     sampler:
+#       seed: 42
+#     direction: maximize
+#     study_name: cross-adaptation
+#     storage: null
+#     n_trials: 100
+#     n_jobs: 1
 wandb:
-  project: cross-adaptation
+  project: cross-adaptation-2
   entity: thelion-ai
 random_state: 42
-root_path: ../../../../experiments/data/processed
+root_path: /home/basia/Desktop/cross-adaptation/experiments/data/tabular/processed
 train_data:
   {
-    Brazil-1: Brazil-1.csv,
-    Brazil-2: Brazil-2.csv,
-    Italy-1: Italy-1.csv,
-    Italy-2: Italy-2.csv,
-    Italy-3: Italy-3.csv,
-    Italy-4: Italy-4.csv,
-    Poland: Poland.csv,
-    
+    Brazil: brazil.csv,
+    Italy_1: italy.csv,
   }
+
 test_data: {
-    Spain: Spain.csv,
-    Ethiopia: Ethiopia.csv,
+    Spain: spain.csv,
+    Ethiopia: ethiopia.csv,
 }
 metrics:
   - _target_: sklearn.metrics.accuracy_score

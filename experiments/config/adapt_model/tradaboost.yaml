@@ -1,4 +1,0 @@
-_target_: adapt.instance_based.TrAdaBoost
-n_estimators: 10
-lr: 1
-verbose: 0

@@ -104,3 +104,5 @@ bin/
 /src/external/
 .venv/
 /multirun/
+
+experiments/data
