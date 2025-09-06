@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Obuchowski"
+  given-names: "Aleksander"
+  orcid: "https://orcid.org/0000-0003-0617-9059"
+- family-names: "Klaudel"
+  given-names: "Barbara"
+  orcid: "https://orcid.org/0000-0003-2422-3666"
+- family-names: "Frąckowski"
+  given-names: "Piotr"
+- family-names: "Krajna"
+  given-names: "Sebastian"
+- family-names: "Badyra"
+  given-names: "Wasyl"
+- family-names: "Czubenko"
+  given-names: "Michał"
+- family-names: "Kowalczuk"
+  given-names: "Zdzisław"
+title: "Target-free domain adaptation through cross-adaptation (student abstract)"
+version: 0.0.0
+date-released: 2024-03-24
+url: "https://github.com/TheLion-ai/UMIE_datasets"
