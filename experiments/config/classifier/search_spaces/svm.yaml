@@ -1,0 +1,8 @@
+classifier.kernel: choice(linear, poly, rbf, sigmoid)
+classifier.degree: choice(2, 3, 4, 5)
+classifier.gamma: choice(scale, auto, 0.001, 0.01, 0.1, 1.0, 10.0)
+classifier.coef0: choice(0.0, 0.1, 0.5, 1.0)
+classifier.tol: choice(1.0e-4, 1.0e-3, 1.0e-2)
+classifier.C: choice(0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0)
+classifier.shrinking: choice(true, false)
+classifier.max_iter: choice(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, -1)

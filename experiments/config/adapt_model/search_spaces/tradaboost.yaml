@@ -1,0 +1,2 @@
+adapt_model.n_estimators: choice(10, 25, 50, 75, 100, 150, 200)
+adapt_model.lr: choice(0.1, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0)

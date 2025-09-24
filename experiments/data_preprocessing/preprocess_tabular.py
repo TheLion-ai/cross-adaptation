@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from configparser import ConfigParser
 import os
@@ -111,6 +112,72 @@ def rename_columns(data):
 def ensure_numeric_format(data):
     for k, v in data.items():
         v = v.apply(pd.to_numeric, errors='coerce')
+        data[k] = v
+    return data
+
+def remove_outliers_from_all_datasets(data, method='strict_iqr', threshold=10.0):
+    """Remove significant outliers from all datasets
+    
+    Args:
+        data: Dictionary containing datasets
+        method: 'strict_iqr' (1.5*IQR), 'z_score' (Z-score), 'modified_z' (Modified Z-score), or 'percentile'
+        threshold: Threshold value (3.0 for Z-score, 3.5 for modified Z-score, 10.0 for strict_iqr)
+    """
+    for dataset_name, df in data.items():
+        df = df.copy()
+        print(f"\n{dataset_name} dataset before outlier removal: {len(df)} rows")
+        
+        # Get numeric columns (excluding target)
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        if 'target' in numeric_cols:
+            numeric_cols.remove('target')
+        
+        outlier_mask = pd.Series([False] * len(df), index=df.index)
+        
+        for col in numeric_cols:
+            if col not in df.columns:
+                continue
+                
+            col_data = df[col].dropna()
+            
+            if method == 'strict_iqr':
+                # Conservative: 1.5*IQR (standard IQR method)
+                Q1 = col_data.quantile(0.25)
+                Q3 = col_data.quantile(0.75)
+                IQR = Q3 - Q1
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
+                col_outliers = (df[col] < lower_bound) | (df[col] > upper_bound)
+                100333.0
+            elif method == 'z_score':
+                # Z-score method (threshold typically 3.0)
+                z_scores = np.abs((df[col] - df[col].mean()) / df[col].std())
+                col_outliers = z_scores > threshold
+                
+            elif method == 'modified_z':
+                # Modified Z-score using median (more robust)
+                median = df[col].median()
+                mad = np.median(np.abs(df[col] - median))
+                if mad == 0:
+                    col_outliers = pd.Series([False] * len(df), index=df.index)
+                else:
+                    modified_z_scores = 0.6745 * (df[col] - median) / mad
+                    col_outliers = np.abs(modified_z_scores) > threshold
+                
+            elif method == 'percentile':
+                # Remove only extreme percentiles (e.g., bottom 1% and top 1%)
+                lower_bound = df[col].quantile(0.01)
+                upper_bound = df[col].quantile(0.99)
+                col_outliers = (df[col] < lower_bound) | (df[col] > upper_bound)
+                
+            outlier_mask = outlier_mask | col_outliers
+            print(f"  Column {col}: {col_outliers.sum()} outliers detected")
+        
+        # Remove rows with outliers
+        data[dataset_name] = df[~outlier_mask].reset_index(drop=True)
+        print(f"{dataset_name} dataset after outlier removal: {len(data[dataset_name])} rows")
+        print(f"Total outliers removed: {outlier_mask.sum()}")
+    
     return data
         
         
@@ -124,21 +191,21 @@ def save_data(data):
         
 def merge_italy_and_brazil_datasets():
     root_path = "experiments/data/tabular/processed/"
-    italy_files = ["italy_1.csv", "italy_2.csv", "italy_3.csv"]
-    brazil_files = ["brazil_1.csv", "brazil_2.csv", "brazil_3.csv"]
-    italy_train_dfs =[pd.read_csv(os.path.join(root_path, "train", f)) for f in italy_files]
-    italy_test_dfs = [pd.read_csv(os.path.join(root_path, "test", f)) for f in brazil_files]
-    brazil_train_dfs = [pd.read_csv(os.path.join(root_path, "train", f)) for f in italy_files]
+    # italy_files = ["italy_1.csv", "italy_2.csv", "italy_3.csv"]
+    brazil_files = ["brazil_1.csv", "brazil_2.csv"]
+    # italy_train_dfs =[pd.read_csv(os.path.join(root_path, "train", f)) for f in italy_files]
+    # italy_test_dfs = [pd.read_csv(os.path.join(root_path, "test", f)) for f in italy_files]
+    brazil_train_dfs = [pd.read_csv(os.path.join(root_path, "train", f)) for f in brazil_files]
     brazil_test_dfs = [pd.read_csv(os.path.join(root_path, "test", f)) for f in brazil_files]
-    italy_train = pd.concat(italy_train_dfs).sample(frac=1).reset_index(drop=True)
-    italy_test = pd.concat(italy_test_dfs).sample(frac=1).reset_index(drop=True)
+    # italy_train = pd.concat(italy_train_dfs).sample(frac=1).reset_index(drop=True)
+    # italy_test = pd.concat(italy_test_dfs).sample(frac=1).reset_index(drop=True)
     brazil_train = pd.concat(brazil_train_dfs).sample(frac=1).reset_index(drop=True)
     brazil_test = pd.concat(brazil_test_dfs).sample(frac=1).reset_index(drop=True)
     
-    italy_train.to_csv(f"experiments/data/tabular/processed/train/italy.csv", index=False)
-    italy_test.to_csv(f"experiments/data/tabular/processed/test/italy.csv", index=False)
-    brazil_train.to_csv(f"experiments/data/tabular/processed/train/brazil.csv", index=False)
-    brazil_test.to_csv(f"experiments/data/tabular/processed/test/brazil.csv", index=False)
+    # italy_train.to_csv(f"experiments/data/tabular/processed/train/italy.csv", index=False)
+    # italy_test.to_csv(f"experiments/data/tabular/processed/test/italy.csv", index=False)
+    brazil_train.to_csv(f"experiments/data/tabular/processed/train/brazilv2.csv", index=False)
+    brazil_test.to_csv(f"experiments/data/tabular/processed/test/brazilv2.csv", index=False)
     
     
     
@@ -147,6 +214,8 @@ def preprocess_data():
     data = rename_columns(data)
     data = rename_sex_values(data)
     data = ensure_numeric_format(data)
+    # Remove outliers from all datasets using standard IQR method
+    data = remove_outliers_from_all_datasets(data, method='strict_iqr')
     save_data(data)
     merge_italy_and_brazil_datasets()
     

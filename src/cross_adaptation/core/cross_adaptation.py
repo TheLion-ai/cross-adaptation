@@ -97,8 +97,29 @@ class Adapter:
             # Adapt source dataset based on the target (all other datasets)
             target = self.train_data.copy()
             del target[dataset_name] # Delete from the target the dataset used as source
-            dft = pd.concat(list(target.values()), join="outer", axis=0)
-            dft = dft.sample(frac=1).reset_index(drop=True)
+            
+            # Create target dataset with equal subdataset weights
+            target_dfs = []
+            dataset_weights = []
+            
+            for target_name, target_df in target.items():
+                target_dfs.append(target_df)
+                # Weight inversely proportional to dataset size to ensure equal contribution
+                dataset_weight = 1.0 / len(target_df)
+                dataset_weights.extend([dataset_weight] * len(target_df))
+            
+            dft = pd.concat(target_dfs, join="outer", axis=0).reset_index(drop=True)
+            
+            # Normalize weights so they sum to number of subdatasets (equal contribution per subdataset)
+            dataset_weights = np.array(dataset_weights)
+            num_subdatasets = len(target)
+            dataset_weights = dataset_weights * num_subdatasets / dataset_weights.sum()
+            
+            # Shuffle data and corresponding weights together
+            shuffle_indices = np.random.RandomState(42).permutation(len(dft))
+            dft = dft.iloc[shuffle_indices].reset_index(drop=True)
+            dataset_weights = dataset_weights[shuffle_indices]
+            
             Xt, yt = dft.loc[:, dft.columns != "target"], dft["target"]
             Xt = self.scaler.transform(Xt)
             
@@ -108,13 +129,58 @@ class Adapter:
             if hasattr(self.adapt_model, 'yt'):
                 self.adapt_model.yt = np.array(yt)
 
-            # Fit the adaptation model
+            # Fit the adaptation model with target dataset weights
             # For instance-based methods like KLIEP and KMM, we need to pass Xt as keyword argument
             # The adapt package expects fit(X, y, Xt=None, yt=None) signature
-            self.adapt_model.fit(Xs_scaled, np.array(ys), Xt=Xt, yt=np.array(yt))
+            import inspect
+            fit_params = inspect.signature(self.adapt_model.fit).parameters
+            
+            try:
+                if 'sample_weight_target' in fit_params:
+                    self.adapt_model.fit(Xs_scaled, np.array(ys), Xt=Xt, yt=np.array(yt), sample_weight_target=dataset_weights)
+                elif 'target_weight' in fit_params:
+                    self.adapt_model.fit(Xs_scaled, np.array(ys), Xt=Xt, yt=np.array(yt), target_weight=dataset_weights)
+                else:
+                    # Store weights in the model if it supports them
+                    if hasattr(self.adapt_model, 'target_weights'):
+                        self.adapt_model.target_weights = dataset_weights
+                    self.adapt_model.fit(Xs_scaled, np.array(ys), Xt=Xt, yt=np.array(yt))
+            except (ValueError, ArithmeticError) as e:
+                print(f"Warning: Adaptation method failed for {dataset_name} with error: {e}")
+                print("Falling back to uniform weights...")
+                # Create a fallback adapter that returns uniform weights
+                self.adapt_model._fallback_weights = np.ones(len(Xs_scaled)) / len(Xs_scaled) * len(Xs_scaled)
+                print(f"Using uniform weights for {dataset_name}")
+                
+                # Store the fallback flag
+                if not hasattr(self.adapt_model, '_fallback_datasets'):
+                    self.adapt_model._fallback_datasets = set()
+                self.adapt_model._fallback_datasets.add(dataset_name)
 
             # Get weights from the adaptation model
-            weights = self.adapt_model.predict_weights()
+            if hasattr(self.adapt_model, '_fallback_datasets') and dataset_name in self.adapt_model._fallback_datasets:
+                # Use fallback uniform weights
+                weights = self.adapt_model._fallback_weights
+                print(f"Using fallback uniform weights for {dataset_name}")
+            else:
+                try:
+                    weights = self.adapt_model.predict_weights()
+                except (ValueError, ArithmeticError) as e:
+                    print(f"Warning: predict_weights failed for {dataset_name} with error: {e}")
+                    print("Using uniform weights as fallback...")
+                    weights = np.ones(len(Xs_scaled)) / len(Xs_scaled) * len(Xs_scaled)
+            
+            # Validate and fix weights to ensure they are positive
+            if np.any(weights <= 0):
+                print(f"Warning: Found {np.sum(weights <= 0)} non-positive weights in {dataset_name}. Fixing...")
+                # Replace non-positive weights with small positive values
+                min_positive_weight = weights[weights > 0].min() if np.any(weights > 0) else 1e-6
+                weights[weights <= 0] = min_positive_weight * 0.01
+                print(f"Replaced non-positive weights with {min_positive_weight * 0.01:.2e}")
+            
+            # Normalize weights to ensure they sum to number of samples (standard practice)
+            weights = weights / weights.sum() * len(weights)
+            print(f"Dataset {dataset_name}: weights range [{weights.min():.6f}, {weights.max():.6f}], sum: {weights.sum():.1f}")
             
             # Store adapted data
             Xs_df = pd.DataFrame(Xs_scaled, columns=dfs.columns.drop("target"))
@@ -179,6 +245,24 @@ class Adapter:
         X_train = pd.concat(X_list, axis=0, ignore_index=True)
         y_train = pd.concat(y_list, axis=0, ignore_index=True)
         weights_train = np.concatenate(weights_list)
+        
+        # Validate and fix weights
+        if use_weights:
+            print(f"Original weights - min: {weights_train.min():.6f}, max: {weights_train.max():.6f}, mean: {weights_train.mean():.6f}")
+            
+            # Check for invalid weights
+            if np.all(weights_train <= 0):
+                print("Warning: All weights are zero or negative. Disabling weights and using uniform weighting.")
+                use_weights = False
+            elif np.any(weights_train <= 0):
+                print(f"Warning: {np.sum(weights_train <= 0)} weights are zero or negative. Setting them to minimum positive weight.")
+                min_positive_weight = weights_train[weights_train > 0].min()
+                weights_train[weights_train <= 0] = min_positive_weight * 0.01  # Very small positive value
+            
+            # Normalize weights to ensure they sum to number of samples (standard practice)
+            if use_weights:
+                weights_train = weights_train / weights_train.sum() * len(weights_train)
+                print(f"Normalized weights - min: {weights_train.min():.6f}, max: {weights_train.max():.6f}, sum: {weights_train.sum():.1f}")
         
         # Train the estimator with or without weights
         if use_weights and hasattr(self.estimator, 'fit'):

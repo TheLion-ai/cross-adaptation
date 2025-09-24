@@ -22,9 +22,11 @@ from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier
 from adapt.instance_based import KLIEP, KMM, TrAdaBoost
 from src.cross_adaptation.core.cross_adaptation import Adapter
+from src.visualization import AdaptationVisualizer, load_original_and_adapted_data
 from lazypredict.Supervised import LazyClassifier
 import wandb
 import hydra
+import random
 from statistics import mean
 from omegaconf import DictConfig
 
@@ -43,26 +45,50 @@ def main(cfg: DictConfig):
     test_data = {
         k: pd.read_csv(os.path.join(cfg.root_path, 'test', df), index_col=0) for k, df in cfg.test_data.items()
     }
+    # Create estimator and adapt_model
+    if cfg.classifier._target_ == "sklearn.neighbors.KNeighborsClassifier":
+        estimator = hydra.utils.instantiate(cfg.classifier)
+    else:
+        estimator = hydra.utils.instantiate(cfg.classifier, random_state=cfg.random_state)
+    if cfg.adapt_model._target_ == "adapt.instance_based.WANN":
+        adapt_model = hydra.utils.instantiate(
+            cfg.adapt_model, random_state=cfg.random_state
+        )
+    else:
+        adapt_model = hydra.utils.instantiate(
+            cfg.adapt_model, estimator=estimator, random_state=cfg.random_state
+        )
 
-    # Configure XGBoost to use CPU
-    estimator = RandomForestClassifier()
-    # estimator = XGBClassifier(
-    #     tree_method='hist',  # Use histogram-based algorithm for CPU
-    #     device='cpu'  # Explicitly set to use CPU
+    # # Configure XGBoost to use CPU
+    # estimator = RandomForestClassifier()
+    # # estimator = XGBClassifier(
+    # #     tree_method='hist',  # Use histogram-based algorithm for CPU
+    # #     device='cpu'  # Explicitly set to use CPU
+    # # )
+    # adapt_model = adapt_model = KLIEP(
+    #     kernel='rbf',
+    #     max_centers=100,
+    #     lr=0.01,
+    #     max_iter=2000
     # )
-    adapt_model = adapt_model = KLIEP(
-        kernel='rbf',
-        max_centers=100,
-        lr=0.01,
-        max_iter=2000
-    )
-    # run = wandb.init(
-    #             entity="thelion-ai",
-    #             project="cross-adaptation-2",
-    #             config=cfg,
-    #             name=f"{cfg.classifier._target_}_{cfg.adapt_model._target_}_{random.randint(0, 100000)}",
-    #         )
-    # Run cross-adaptation
+    # Convert config to dict and filter out non-serializable keys
+    config_dict = {}
+    for key, value in cfg.items():
+        try:
+            # Test if the value is JSON serializable
+            import json
+            json.dumps({key: value})
+            config_dict[key] = value
+        except (TypeError, ValueError):
+            # Skip non-serializable values
+            continue
+    
+    run = wandb.init(
+                entity="thelion-ai",
+                project="cross-adaptation-5",
+                config=config_dict,
+                name=f"{cfg.classifier._target_}_{cfg.adapt_model._target_}_{random.randint(0, 100000)}",
+            )
     adapter = Adapter(
         train_data=train_data, estimator=estimator, adapt_model=adapt_model
     )
@@ -71,13 +97,56 @@ def main(cfg: DictConfig):
     save_dir = os.path.join("outputs", "adapted_data")
     adapted_data = adapter.adapt(save_dir=save_dir)
     
+    # Create visualizations comparing original vs adapted data
+    if cfg.get('create_visualizations', True):
+        print("Creating adaptation visualizations...")
+        viz = AdaptationVisualizer()
+        
+        # Load original test data for comparison
+        original_test_data = {
+            k: pd.read_csv(os.path.join(cfg.root_path, 'test', df), index_col=0) 
+            for k, df in cfg.test_data.items()
+        }
+        
+        # Create visualization directory
+        viz_dir = os.path.join("outputs", "visualizations")
+        os.makedirs(viz_dir, exist_ok=True)
+        
+        # Get available blood parameters
+        sample_df = list(test_data.values())[0]
+        blood_params = [col for col in sample_df.columns 
+                       if col != 'target' and pd.api.types.is_numeric_dtype(sample_df[col])][:6]  # Limit to 6 for readability
+        
+        # Distribution comparison
+        viz.plot_distribution_comparison(
+            original_test_data, adapted_data,
+            countries=list(cfg.test_data.keys()),
+            blood_params=blood_params,
+            save_path=os.path.join(viz_dir, "distribution_comparison.png")
+        )
+        
+        # Scatter plot comparison (using first two numeric parameters)
+        if len(blood_params) >= 2:
+            viz.plot_scatter_comparison(
+                original_test_data, adapted_data,
+                x_param=blood_params[0], y_param=blood_params[1],
+                countries=list(cfg.test_data.keys()),
+                save_path=os.path.join(viz_dir, "scatter_comparison.png")
+            )
+        
+        # Statistical comparison
+        stats_df = viz.plot_statistics_comparison(
+            original_test_data, adapted_data,
+            countries=list(cfg.test_data.keys()),
+            blood_params=blood_params,
+            save_path=os.path.join(viz_dir, "statistics_comparison.png")
+        )
+        
+        # Save statistics to CSV
+        stats_df.to_csv(os.path.join(viz_dir, "adaptation_statistics.csv"), index=False)
+        print(f"Visualizations saved to: {viz_dir}")
+    
     # Log adapted data info if using wandb
-    # for dataset_name, data_dict in adapted_data.items():
-    #     df = data_dict['X'].copy()
-    #     df['target'] = data_dict['y']
-    #     df['weights'] = data_dict['weights']
-    #     table = wandb.Table(dataframe=df)
-    #     run.log({f"{dataset_name}_cross_adapted": table})
 
     # Prepare metrics
     metrics = [
@@ -95,39 +164,40 @@ def main(cfg: DictConfig):
         save_model=True    # Save the trained model
     )
     # Log adapted results
-    print("Adapted model results:", results)
-    # wandb.log(results)
+    # print("Adapted model results:", results)
+    wandb.log(results)
     
     # Calculate baseline results
     baseline_results = adapter.calc_baseline(test_data, metrics=metrics)
-    print("Baseline model results:", baseline_results)
-    # wandb.log(baseline_results)
+    # print("Baseline model results:", baseline_results)
+    wandb.log(baseline_results)
     
     # Compare adapted vs baseline
     compare_results = adapter.compare(results, baseline_results, metrics, test_data)
-    print("Comparison (adapted - baseline):", compare_results)
-    # wandb.log(compare_results)
+    # print("Comparison (adapted - baseline):", compare_results)
+    wandb.log(compare_results)
     # Calculate the score for optuna
     score = dict(
         filter(lambda item: cfg.optimized_metric in item[0], results.items())
     ).values()
     score = mean(list(score))
     print(f"Mean {cfg.optimized_metric} score: {score}")
-    # wandb.log({f"{cfg.optimized_metric}_mean_score": score})
+    wandb.log({f"{cfg.optimized_metric}_mean_score": score})
     
-    # Print summary
-    print("\n" + "="*60)
-    print("EXPERIMENT SUMMARY")
-    print("="*60)
-    print(f"Adaptation method: {adapt_model.__class__.__name__}")
-    print(f"Estimator: {estimator.__class__.__name__}")
-    print(f"Adapted data saved to: {save_dir}")
-    print(f"Number of datasets adapted: {len(adapted_data)}")
-    print(f"Mean optimization metric ({cfg.optimized_metric}): {score:.4f}")
-    print("="*60)
+    # # Print summary
+    # print("\n" + "="*60)
+    # print("EXPERIMENT SUMMARY")
+    # print("="*60)
+    # print(f"Adaptation method: {adapt_model.__class__.__name__}")
+    # print(f"Estimator: {estimator.__class__.__name__}")
+    # print(f"Adapted data saved to: {save_dir}")
+    # print(f"Number of datasets adapted: {len(adapted_data)}")
+    # print(f"Mean optimization metric ({cfg.optimized_metric}): {score:.4f}")
+    # print("="*60)
     
-    # wandb.finish()
-    print("\nExperiment completed successfully!")
+    wandb.finish()
+    # print("\nExperiment completed successfully!")
+    return score
     
 if __name__ == "__main__":
     main()

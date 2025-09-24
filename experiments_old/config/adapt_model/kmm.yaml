@@ -1,8 +1,0 @@
-_target_: adapt.instance_based.KMM
-kernel: rbf
-B: 1000
-eps: 1e-05
-max_size: 1000
-tol: 1e-05
-max_iter: 100
-verbose: 0

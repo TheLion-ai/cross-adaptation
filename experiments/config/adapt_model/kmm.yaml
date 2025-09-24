@@ -1,0 +1,5 @@
+_target_: adapt.instance_based.KMM
+kernel: rbf
+B: 1000.0
+eps: 1.0e-02
+max_iter: 100

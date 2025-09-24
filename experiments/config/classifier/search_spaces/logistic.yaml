@@ -1,0 +1,8 @@
+classifier.penalty: choice(l2, l1, elasticnet)
+classifier.tol: choice(1.0e-5, 1.0e-4, 1.0e-3)
+classifier.C: choice(0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0)
+classifier.fit_intercept: choice(true, false)
+classifier.solver: choice(lbfgs, liblinear, sag, saga)
+classifier.max_iter: choice(100, 200, 500, 1000, 2000)
+classifier.multi_class: choice(auto, ovr, multinomial)
+classifier.l1_ratio: choice(0.15, 0.5, 0.7, 0.9)

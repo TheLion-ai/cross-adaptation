@@ -1,2 +1,0 @@
-_target_: sklearn.naive_bayes.GaussianNB
-var_smoothing: 1e-09
