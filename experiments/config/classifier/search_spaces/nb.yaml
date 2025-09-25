@@ -1,1 +1,2 @@
-classifier.var_smoothing: 
+classifier.alpha: choice(0.1, 0.5, 1.0, 2.0, 5.0, 10.0)
+classifier.fit_prior: choice(true, false)

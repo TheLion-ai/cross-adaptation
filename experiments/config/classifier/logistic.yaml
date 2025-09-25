@@ -1,0 +1,15 @@
+_target_: sklearn.linear_model.LogisticRegression
+penalty: l2
+dual: false
+tol: 1.0e-4
+C: 1.0
+fit_intercept: true
+intercept_scaling: 1
+class_weight: null
+solver: lbfgs
+max_iter: 1000
+multi_class: auto
+verbose: 0
+warm_start: false
+n_jobs: null
+l1_ratio: null

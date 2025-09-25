@@ -1,9 +1,9 @@
 defaults:
+  - _self_
   - classifier: xgb
-  - adapt_model: kliep
+  - adapt_model: kmm
   - classifier/search_spaces@hydra.sweeper.params: ${classifier}
   - adapt_model/search_spaces@hydra.sweeper.params: ${adapt_model}
-  - _self_
   - override hydra/sweeper: optuna
   - override hydra/sweeper/sampler: tpe
 hydra:
@@ -12,29 +12,30 @@ hydra:
     sampler:
       seed: 42
     direction: maximize
-    study_name: cross-adaptation
+    study_name: cross-adaptation-5
     storage: null
     n_trials: 100
     n_jobs: 1
 wandb:
-  project: cross-adaptation
+  project: cross-adaptation-5
   entity: thelion-ai
 random_state: 42
-root_path: ../../../../experiments/data/processed
+root_path: /home/basia/Desktop/cross-adaptation/experiments/data/tabular/processed
 train_data:
   {
-    Brazil-1: Brazil-1.csv,
-    Brazil-2: Brazil-2.csv,
-    Italy-1: Italy-1.csv,
-    Italy-2: Italy-2.csv,
-    Italy-3: Italy-3.csv,
-    Italy-4: Italy-4.csv,
-    Poland: Poland.csv,
-    
+    # Brazil: brazilv2.csv,
+    # Italy: italy.csv,
+    Brazil_1: brazil_1.csv,
+    Brazil_2: brazil_2.csv,
+    # Brazil_3: brazil_3.csv,
+    Italy_1: italy_1.csv,
+    Italy_2: italy_2.csv,
+    Italy_3: italy_3.csv,
   }
+
 test_data: {
-    Spain: Spain.csv,
-    Ethiopia: Ethiopia.csv,
+    Spain: spain.csv,
+    Ethiopia: ethiopia.csv,
 }
 metrics:
   - _target_: sklearn.metrics.accuracy_score
@@ -43,3 +44,4 @@ metrics:
   - _target_: sklearn.metrics.precision_score
   - _target_: sklearn.metrics.recall_score
 optimized_metric: f1_score
+create_visualizations: false

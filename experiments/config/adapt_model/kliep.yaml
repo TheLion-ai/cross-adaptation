@@ -1,6 +1,6 @@
 _target_: adapt.instance_based.KLIEP
 kernel: rbf
-max_centers: 200
+max_centers: 100
 lr: 0.01
-tol: 1e-6
-max_iter: 2000
+tol: 1.0e-06
+max_iter: 1000

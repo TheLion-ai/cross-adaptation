@@ -4,7 +4,7 @@ Credits
 Project Lead
 ----------------
 
-* TheLion-ai <mariokrapp@gmail.com>
+<!-- * Barbara Klaudel <klaudel.b@gmail.com> -->
 
 Project Contributors
 ------------

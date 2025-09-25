@@ -1,5 +1,4 @@
 _target_: adapt.instance_based.WANN
-pretrain: True
-C: 1
-loss: binary_crossentropy
-verbose: 0
+n_estimators: 50
+lr: 1.0
+random_state: 42
