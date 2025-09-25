@@ -1,53 +1,136 @@
-Cross-adaptation
-==============================
-# Description
+# Cross-Adaptation
 
-Cross-adaptation performs domain adaptation across a set of domains of all the available training datasets $\{D_1,D_2,...,D_n\}$ (where $n$ is the number of training datasets) by iteratively changing which dataset is the source and which datasets are the target. It follows the case of multi-target domain adaptation.  The algorithm produces transformed datasets $D_x = \{D_{x_1}, D_{x_2},...,{D_{x_n}}\}$. The resulting datasets $D_x$ that is a concatenation of all transformed datasets $\{D_{x_1}, D_{x_2},...,{D_{x_n}}\}$ can then be paired with its respective labels to train the model $f$. This model can then be successfully used on a new domain not present in the training domains $D$. As shown in the Algorithm \ref{alg:domain-generalization}, this method works irrespective of the domain adaptation method $g$. We can denote the source and target domains as $D_s$ and $D_t$. 
+[![Python](https://img.shields.io/badge/python->=3.12-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Algorithm
+A Python library for multi-target domain adaptation that enables robust machine learning models across different domains.
 
-<img width="555" alt="image" src="docs/alg.png">
+## 📖 Overview
 
-# Usage
-## Installation
-Prerequisites
-* python = "^3.8,<3.11"
-* [Poetry](https://python-poetry.org/docs/)
+Cross-adaptation performs domain adaptation across multiple training datasets {D₁, D₂, ..., Dₙ} by iteratively changing which dataset serves as the source and which as targets. This multi-target domain adaptation approach:
 
-Install requirements
-```
+- **Transforms datasets** through iterative source-target switching
+- **Works with any domain adaptation method** as the underlying algorithm g
+- **Improves generalization** to new, unseen domains
+- **Concatenates transformed datasets** D_x = {D_x1, D_x2, ..., D_xn} for final model training
+
+The resulting model f can successfully predict on domains not present during training.
+
+## 🔬 Algorithm
+
+<img width="555" alt="Cross-adaptation algorithm" src="docs/alg.png">
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python ≥ 3.12
+- [uv](https://docs.astral.sh/uv/) (recommended) or [Poetry](https://python-poetry.org/docs/)
+
+### Installation
+
+```bash
+# Using uv (recommended)
+uv sync
+
+# Or using Poetry
 poetry install
 ```
-## Using cross-adaptation
+
+### Basic Usage
 ```python
 import pandas as pd
 from adapt.instance_based import KMM
 from sklearn.tree import DecisionTreeClassifier
-
 from cross_adaptation import Adapter
 
-data: {
-    "dataset1" : pd.DataFrame(),
-    "dataset2" : pd.DataFrame()
-} # the data to be adapted, each dataframe should have a column called target
-adapt_model = KMM(...) #the method for domain adaptation
-classifier = DecisionTreeClassifier(...) #estimator used for the task
+# Prepare your datasets (each DataFrame should have a 'target' column)
+data = {
+    "dataset1": pd.DataFrame(...),  # Your first domain dataset
+    "dataset2": pd.DataFrame(...)   # Your second domain dataset
+}
 
+# Choose your domain adaptation method
+adapt_model = KMM(kernel="rbf", gamma=1.0)
+
+# Select your classifier
+classifier = DecisionTreeClassifier(random_state=42)
+
+# Create and run the adapter
 adapter = Adapter(
-    data,
-    adapt_model,
-    classifier
+    data=data,
+    adapt_model=adapt_model,
+    classifier=classifier
 )
 
+# Get the adapted dataset
 adapted_dataset = adapter.adapt()
+```
+
+## 🧪 Running Experiments
+
+### Configuration
+
+Adjust experiment settings in `experiments/config/`:
+- Modify dataset parameters
+- Choose domain adaptation methods
+- Set classifier options
+
+### Execution
+
+```bash
+# Using uv
+uv run experiments/main.py
+
+# Using Poetry
+poetry run experiments/main.py
+
+# Or using the provided script
+./run_experiments.sh
+```
+
+## 📊 Key Features
+
+- **Multiple Domain Support**: Handle any number of source/target domain combinations
+- **Method Agnostic**: Compatible with various domain adaptation algorithms from the `adapt` library
+- **Sklearn Integration**: Seamless integration with scikit-learn classifiers
+- **Experimental Framework**: Built-in experiment management with Hydra configuration
+- **Visualization Tools**: Analysis and visualization utilities for adaptation results
+
+## 🛠️ Dependencies
+
+Key libraries used:
+- `adapt`: Domain adaptation algorithms
+- `scikit-learn`: Machine learning utilities
+- `pandas`: Data manipulation
+- `transformers`: For advanced ML models
+- `wandb`: Experiment tracking
+- `hydra-core`: Configuration management
+
+## 📁 Project Structure
 
 ```
-## Running experiments
+cross-adaptation/
+├── src/
+│   ├── cross_adaptation/       # Main library code
+│   └── visualization/          # Visualization utilities
+├── experiments/               # Experimental framework
+├── docs/                     # Documentation and assets
+└── main.py                  # Main execution script
+```
 
-* adjust config in `experiments/config`
-* run `experiments/main.py`
-  ```bash
-    poetry run experiments/main.py
-  ```
+## 🤝 Contributing
 
+Contributions are welcome! Please feel free to submit issues and enhancement requests.
 
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔬 Research
+
+If you use this library in your research, please consider citing our work.
+
+## 📞 Support
+
+For questions and support, please open an issue on the GitHub repository.
